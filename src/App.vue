@@ -1,28 +1,79 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+  <section class="todoapp">
+    <TodoHeader @add="add"></TodoHeader>
+    <TodoMain
+      :list="list"
+      :type="type"
+      @toggleCompleted="toggleCompleted"
+      @del="del"
+      @edit="edit"
+      @allDone="allDone"
+    ></TodoMain>
+    <TodoFooter :list="list" :type="type" @filter="filter" @clearCompleted="clearCompleted"></TodoFooter>
+  </section>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import TodoHeader from './components/TodoHeader'
+import TodoMain from './components/TodoMain'
+import TodoFooter from './components/TodoFooter'
 export default {
-  name: 'App',
+  // 注册组件
   components: {
-    HelloWorld
+    TodoHeader,
+    TodoMain,
+    TodoFooter,
+  },
+  data() {
+    return {
+      list: JSON.parse(localStorage.getItem('todoList')) || [],
+      type: 'all',
+    }
+  },
+  methods: {
+    // 切换完成状态
+    toggleCompleted(id) {
+      const item = this.list.find(item => item.id === id)
+      item.isCompleted = !item.isCompleted
+    },
+    // 删除
+    del(id) {
+      this.list = this.list.filter(item => item.id !== id)
+    },
+    // 修改
+    edit(id, title) {
+      this.list.find(item => item.id === id).title = title
+    },
+    // 全选控制单选
+    allDone(value) {
+      this.list.forEach(item => (item.isCompleted = value))
+    },
+    // 增加
+    add(title) {
+      this.list.unshift({
+        id: Date.now(),
+        title,
+        isCompleted: false,
+      })
+    },
+    // 切换
+    filter(type) {
+      this.type = type
+    }, 
+    // 删除完成
+    clearCompleted () {
+      this.list = this.list.filter(item => !item.isCompleted)
+    }
+  },
+  watch: {
+    list: {
+      deep: true,
+      handler (newValue) {
+        localStorage.setItem('todoList', JSON.stringify(newValue))
+      }
+    }
   }
 }
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style></style>
